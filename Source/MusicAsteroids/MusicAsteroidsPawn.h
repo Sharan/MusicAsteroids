@@ -87,6 +87,9 @@ public:
 	FVector GetAsteroidPositionOffScreen();
 	void AsteroidTimerExpired();
 
+	void LoseLife();
+	void DestroyAsteroid(AAsteroid* asteroid);
+
 	// Static names for axis bindings
 	static const FName MoveForwardBinding;
 	static const FName MoveRightBinding;

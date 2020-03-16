@@ -1,6 +1,8 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserve
 
 #include "MusicAsteroidsProjectile.h"
+#include "Asteroid.h"
+#include "MusicAsteroidsPawn.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
@@ -38,8 +40,17 @@ void AMusicAsteroidsProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* Othe
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
+		if (OtherActor->IsA(AAsteroid::StaticClass()))
+		{
+			mShip->DestroyAsteroid((AAsteroid*)OtherActor);
+		}
+		else
+		{
+			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
+		}
+		
 	}
+
 
 	Destroy();
 }

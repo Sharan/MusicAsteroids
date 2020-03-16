@@ -2,6 +2,7 @@
 
 
 #include "Asteroid.h"
+#include "MusicAsteroidsPawn.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
@@ -30,8 +31,8 @@ AAsteroid::AAsteroid()
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement0"));
 	ProjectileMovement->UpdatedComponent = AsteroidMeshComponent;
-	ProjectileMovement->InitialSpeed = 100.f;
-	ProjectileMovement->MaxSpeed = 100.f;
+	ProjectileMovement->InitialSpeed = 1000.f;
+	ProjectileMovement->MaxSpeed = 1000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
 	ProjectileMovement->ProjectileGravityScale = 0.f; // No gravity
@@ -56,6 +57,16 @@ void AAsteroid::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimiti
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 	{
+		if (OtherActor->IsA(AMusicAsteroidsPawn::StaticClass()))
+		{
+
+		}
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
 	}
+}
+
+void AAsteroid::Destroy()
+{
+	//TODO: animate explosion
+	AsteroidMeshComponent->ToggleVisibility();
 }

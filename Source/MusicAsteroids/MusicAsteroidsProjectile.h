@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "MusicAsteroidsPawn.h"
 #include "MusicAsteroidsProjectile.generated.h"
 
 class UProjectileMovementComponent;
@@ -33,5 +34,9 @@ public:
 	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return ProjectileMesh; }
 	/** Returns ProjectileMovement subobject **/
 	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+	void SetPlayerPawn(AMusicAsteroidsPawn* pawn) { mShip = pawn; };
+private:
+	AMusicAsteroidsPawn* mShip;
 };
 

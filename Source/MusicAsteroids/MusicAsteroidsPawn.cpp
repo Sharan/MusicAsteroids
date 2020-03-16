@@ -23,6 +23,11 @@ const FName AMusicAsteroidsPawn::FireWeaponBinding("FireWeapon");
 
 AMusicAsteroidsPawn::AMusicAsteroidsPawn()
 {	
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bAllowTickOnDedicatedServer = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShipMesh(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
 	// Create the mesh component
 	ShipMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
@@ -55,11 +60,11 @@ AMusicAsteroidsPawn::AMusicAsteroidsPawn()
 	bCanFire = true;
 
 	//Asteroids
-	AsteroidSpawnXOffset = 100.0f;
-	AsteroidSpawnYOffset = 100.0f;
+	AsteroidSpawnXOffset = 1000.0f;
+	AsteroidSpawnYOffset = 1000.0f;
 	InitialNumberOfAsteroids = 5;
 	LargeAsteroidsPerLevel = 100;
-	MaxAsteroidDistance = 1000.0f;
+	MaxAsteroidDistance = 5000.0f;
 	AsteroidMoveSpeed = 200.0f;
 	SpawnRate = 0.1f;
 
@@ -71,6 +76,7 @@ AMusicAsteroidsPawn::AMusicAsteroidsPawn()
 
 void AMusicAsteroidsPawn::BeginPlay()
 {
+	APawn::BeginPlay();
 	UWorld* const World = GetWorld();
 	if ((World != NULL))
 	{
@@ -92,8 +98,6 @@ void AMusicAsteroidsPawn::SetupPlayerInputComponent(class UInputComponent* Playe
 
 void AMusicAsteroidsPawn::Tick(float DeltaSeconds)
 {
-	
-	
 	// Find movement direction
 	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
 	//const float RightValue = GetInputAxisValue(MoveRightBinding);
@@ -171,7 +175,8 @@ void AMusicAsteroidsPawn::FireShot(FVector FireDirection)
 			if (World != NULL)
 			{
 				// spawn the projectile
-				World->SpawnActor<AMusicAsteroidsProjectile>(SpawnLocation, FireRotation);
+				AMusicAsteroidsProjectile* proj = World->SpawnActor<AMusicAsteroidsProjectile>(SpawnLocation, FireRotation);
+				proj->SetPlayerPawn(this);
 			}
 
 			bCanFire = false;
@@ -198,6 +203,7 @@ void AMusicAsteroidsPawn::ShotTimerExpired()
 void AMusicAsteroidsPawn::SpawnInitialAsteroids()
 {
 	TArray<FVector> posArray;
+	UWorld* const World = GetWorld();
 	for (int i = 0; i < InitialNumberOfAsteroids; i++)
 	{
 		FVector pos = GetAsteroidPositionOffScreen();
@@ -206,7 +212,7 @@ void AMusicAsteroidsPawn::SpawnInitialAsteroids()
 			pos = GetAsteroidPositionOffScreen();
 		}
 		posArray.Push(pos);
-		UWorld* const World = GetWorld();
+		
 		if (World != NULL)
 		{
 			// spawn the asteroid
@@ -218,11 +224,13 @@ void AMusicAsteroidsPawn::SpawnInitialAsteroids()
 		
 	}
 	//bCanSpawn = false;
-	World->GetTimerManager().SetTimer(TimerHandle_AsteroidTimerExpired, this, &AMusicAsteroidsPawn::AsteroidTimerExpired, SpawnRate);
-
+	if (World != NULL)
+	{
+		World->GetTimerManager().SetTimer(TimerHandle_AsteroidTimerExpired, this, &AMusicAsteroidsPawn::AsteroidTimerExpired, SpawnRate);
+	}
 }
 
-void AMusicAsteroidsPawn::ShotTimerExpired()
+void AMusicAsteroidsPawn::AsteroidTimerExpired()
 {
 	bCanSpawn = true;
 }
@@ -284,4 +292,25 @@ FVector AMusicAsteroidsPawn::GetAsteroidPositionOffScreen()
 	}
 
 	return NewVector;
+}
+
+void AMusicAsteroidsPawn::LoseLife()
+{
+
+}
+
+void AMusicAsteroidsPawn::DestroyAsteroid(AAsteroid* asteroid)
+{
+	int32 idx = Asteroids.Find(asteroid);
+	if (idx != INDEX_NONE)
+	{
+		//TODO: Spawn smaller asteroids until small size
+		UWorld* const World = GetWorld();
+		if (World != NULL)
+		{
+			asteroid->Destroy();
+			World->RemoveActor(asteroid, true);
+		}
+		Asteroids.Remove(asteroid);
+	}
 }
