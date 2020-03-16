@@ -11,6 +11,7 @@
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Sound/SoundBase.h"
 
 const FName AMusicAsteroidsPawn::MoveForwardBinding("MoveForward");
@@ -52,6 +53,29 @@ AMusicAsteroidsPawn::AMusicAsteroidsPawn()
 	GunOffset = FVector(90.f, 0.f, 0.f);
 	FireRate = 0.1f;
 	bCanFire = true;
+
+	//Asteroids
+	AsteroidSpawnXOffset = 100.0f;
+	AsteroidSpawnYOffset = 100.0f;
+	InitialNumberOfAsteroids = 5;
+	LargeAsteroidsPerLevel = 100;
+	MaxAsteroidDistance = 1000.0f;
+	AsteroidMoveSpeed = 200.0f;
+	SpawnRate = 0.1f;
+
+	//seed random
+	double secs = FTimespan(FDateTime::Now().GetTicks()).GetTotalSeconds();
+	int32 seed = (int32)(((int64)secs) % INT_MAX);
+	FMath::RandInit(seed);
+}
+
+void AMusicAsteroidsPawn::BeginPlay()
+{
+	UWorld* const World = GetWorld();
+	if ((World != NULL))
+	{
+		SpawnInitialAsteroids();
+	}
 }
 
 void AMusicAsteroidsPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -68,6 +92,8 @@ void AMusicAsteroidsPawn::SetupPlayerInputComponent(class UInputComponent* Playe
 
 void AMusicAsteroidsPawn::Tick(float DeltaSeconds)
 {
+	
+	
 	// Find movement direction
 	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
 	//const float RightValue = GetInputAxisValue(MoveRightBinding);
@@ -113,6 +139,7 @@ void AMusicAsteroidsPawn::Tick(float DeltaSeconds)
 		}
 	}
 
+	CheckForAsteroidSpawn();
 	// Create fire direction vector
 	//const float FireForwardValue = GetInputAxisValue(FireForwardBinding);
 	//const float FireRightValue = GetInputAxisValue(FireRightBinding);
@@ -166,3 +193,95 @@ void AMusicAsteroidsPawn::ShotTimerExpired()
 	bCanFire = true;
 }
 
+//Asteroid spawning
+
+void AMusicAsteroidsPawn::SpawnInitialAsteroids()
+{
+	TArray<FVector> posArray;
+	for (int i = 0; i < InitialNumberOfAsteroids; i++)
+	{
+		FVector pos = GetAsteroidPositionOffScreen();
+		while (posArray.Contains(pos))
+		{
+			pos = GetAsteroidPositionOffScreen();
+		}
+		posArray.Push(pos);
+		UWorld* const World = GetWorld();
+		if (World != NULL)
+		{
+			// spawn the asteroid
+			FRotator FireRotation = UKismetMathLibrary::FindLookAtRotation(pos, RootComponent->GetComponentLocation());
+			//FRotator FireRotation = pos.Rotation();
+			AAsteroid* newAsteroid = World->SpawnActor<AAsteroid>(pos, FireRotation);
+			Asteroids.Push(newAsteroid);
+		}
+		
+	}
+	//bCanSpawn = false;
+	World->GetTimerManager().SetTimer(TimerHandle_AsteroidTimerExpired, this, &AMusicAsteroidsPawn::AsteroidTimerExpired, SpawnRate);
+
+}
+
+void AMusicAsteroidsPawn::ShotTimerExpired()
+{
+	bCanSpawn = true;
+}
+
+
+void AMusicAsteroidsPawn::CheckForAsteroidSpawn()
+{
+	if (bCanSpawn == true)
+	{
+		FVector pos = GetAsteroidPositionOffScreen();
+		UWorld* const World = GetWorld();
+		if (World != NULL)
+		{
+			// spawn the asteroid
+			FRotator FireRotation = UKismetMathLibrary::FindLookAtRotation(pos, RootComponent->GetComponentLocation());
+			//FRotator FireRotation = pos.Rotation();
+			AAsteroid* newAsteroid = World->SpawnActor<AAsteroid>(pos, FireRotation);
+			Asteroids.Push(newAsteroid);
+		}
+		bCanSpawn = false;
+	}
+}
+
+FVector AMusicAsteroidsPawn::GetAsteroidPositionOffScreen()
+{
+	FVector NewVector = RootComponent->GetComponentLocation();
+
+	while (NewVector == RootComponent->GetComponentLocation())
+	{
+		int32 xLoc = FMath::Rand() % 3;
+		float xVal;
+		switch (xLoc) {
+		case 0:
+			xVal = RootComponent->GetComponentLocation().X - AsteroidSpawnXOffset;
+			break;
+		case 1:
+			xVal = RootComponent->GetComponentLocation().X;
+			break;
+		case 2:
+			xVal = RootComponent->GetComponentLocation().X + AsteroidSpawnXOffset;
+			break;
+		}
+		NewVector.X = xVal;
+
+		int32 yLoc = FMath::Rand() % 3;
+		float yVal;
+		switch (yLoc) {
+		case 0:
+			yVal = RootComponent->GetComponentLocation().Y - AsteroidSpawnYOffset;
+			break;
+		case 1:
+			yVal = RootComponent->GetComponentLocation().Y;
+			break;
+		case 2:
+			yVal = RootComponent->GetComponentLocation().Y + AsteroidSpawnYOffset;
+			break;
+		}
+		NewVector.Y = yVal;
+	}
+
+	return NewVector;
+}

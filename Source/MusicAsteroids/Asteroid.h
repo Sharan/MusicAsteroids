@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Asteroid.generated.h"
 
+class UProjectileMovementComponent;
+
 UCLASS()
 class MUSICASTEROIDS_API AAsteroid : public AActor
 {
@@ -22,6 +24,16 @@ public:
 	UPROPERTY(Category = Mesh, EditAnywhere)
 		class UMaterial* CDMaterial;
 
+	/** Projectile movement component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+		UProjectileMovementComponent* ProjectileMovement;
+
+	/** Function to handle the asteroid hitting something */
+	UFUNCTION()
+		void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	/** Returns ProjectileMovement subobject **/
+	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

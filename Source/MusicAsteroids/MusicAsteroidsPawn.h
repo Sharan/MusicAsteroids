@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Asteroid.h"
+#include "Containers/Array.h"
 #include "GameFramework/Character.h"
 #include "MusicAsteroidsPawn.generated.h"
 
@@ -42,9 +44,34 @@ public:
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* FireSound;
 
+	/* Offset position offscreen to spawn asteroids */
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	float AsteroidSpawnXOffset;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	float AsteroidSpawnYOffset;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	int32 InitialNumberOfAsteroids;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	int32 LargeAsteroidsPerLevel;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	float MaxAsteroidDistance;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	float AsteroidMoveSpeed;
+
+	/* How fast the asteroids will spawn */
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	float SpawnRate;
+
 	// Begin Actor Interface
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+
+	virtual void BeginPlay() override;
 	// End Actor Interface
 
 	/* Fire a shot in the specified direction */
@@ -54,6 +81,12 @@ public:
 	/* Handler for the fire timer expiry */
 	void ShotTimerExpired();
 
+	/* Handle Asteroid spawning*/
+	void SpawnInitialAsteroids();
+	void CheckForAsteroidSpawn();
+	FVector GetAsteroidPositionOffScreen();
+	void AsteroidTimerExpired();
+
 	// Static names for axis bindings
 	static const FName MoveForwardBinding;
 	static const FName MoveRightBinding;
@@ -62,6 +95,7 @@ public:
 
 	static const FName FireWeaponBinding;
 
+
 private:
 
 	/* Flag to control firing  */
@@ -69,6 +103,14 @@ private:
 
 	/** Handle for efficient management of ShotTimerExpired timer */
 	FTimerHandle TimerHandle_ShotTimerExpired;
+
+	TArray<AAsteroid*> Asteroids;
+
+	/* Flag to control firing  */
+	uint32 bCanSpawn : 1;
+
+	/** Handle for efficient management of ShotTimerExpired timer */
+	FTimerHandle TimerHandle_AsteroidTimerExpired;
 
 public:
 	/** Returns ShipMeshComponent subobject **/
