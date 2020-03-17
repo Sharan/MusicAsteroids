@@ -100,6 +100,9 @@ void AMusicAsteroidsPawn::SetupPlayerInputComponent(class UInputComponent* Playe
 
 void AMusicAsteroidsPawn::Tick(float DeltaSeconds)
 {
+	//TODO: Add UI, check for game over, if an asteroid goes beyond the max distance from player move it 
+	// to another offscreen location near the player like when spawned.
+
 	// Find movement direction
 	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
 	//const float RightValue = GetInputAxisValue(MoveRightBinding);
@@ -325,4 +328,9 @@ void AMusicAsteroidsPawn::DestroyAsteroid(AAsteroid* asteroid)
 		Asteroids.Remove(asteroid);
 		Score += 10; //TODO: make constant and have different scores for different size asteroids
 	}
+}
+
+bool AMusicAsteroidsPawn::IsGameOver()
+{
+	return (Asteroids.Num() == 0);
 }

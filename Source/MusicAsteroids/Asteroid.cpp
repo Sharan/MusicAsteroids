@@ -26,7 +26,7 @@ AAsteroid::AAsteroid()
 	AsteroidMeshComponent->SetStaticMesh(AsteroidMesh.Object);
 	AsteroidMeshComponent->SetRelativeScale3D(FVector(3.0f, 3.0f, 3.0f));
 	FRotator newRot;
-	newRot.Pitch = -1;
+	newRot.Pitch = -0.5;
 	AsteroidMeshComponent->AddLocalRotation(newRot);
 
 	//TODO: Use different materials for different sizes, i.e.,  LP, 45, and cd for large, medium, and small

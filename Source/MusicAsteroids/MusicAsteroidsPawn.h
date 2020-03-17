@@ -87,6 +87,8 @@ public:
 	FVector GetAsteroidPositionOffScreen();
 	void AsteroidTimerExpired();
 
+	bool IsGameOver();
+
 	void LoseLife();
 	void DestroyAsteroid(AAsteroid* asteroid);
 
