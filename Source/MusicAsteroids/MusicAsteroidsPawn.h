@@ -109,6 +109,9 @@ private:
 
 	TArray<AAsteroid*> Asteroids;
 
+	int32 NumAsteroids;
+	uint32 Score;
+
 	/* Flag to control firing  */
 	uint32 bCanSpawn : 1;
 

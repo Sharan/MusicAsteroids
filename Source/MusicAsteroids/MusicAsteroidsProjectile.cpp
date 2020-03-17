@@ -34,23 +34,21 @@ AMusicAsteroidsProjectile::AMusicAsteroidsProjectile()
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
 }
-
+#pragma optimize( "", off )
 void AMusicAsteroidsProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
+	bool isAsteroid = OtherActor->IsA(AAsteroid::StaticClass());
+	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL)) // && OtherComp->IsSimulatingPhysics()
 	{
-		if (OtherActor->IsA(AAsteroid::StaticClass()))
+		OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
+		if (isAsteroid)
 		{
 			mShip->DestroyAsteroid((AAsteroid*)OtherActor);
 		}
-		else
-		{
-			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
-		}
-		
 	}
 
 
 	Destroy();
 }
+#pragma optimize( "", on )
